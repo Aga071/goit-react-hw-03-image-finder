@@ -14,6 +14,7 @@ const STATE = {
   error: '',
   showModal: false,
   imageModal: '',
+  alt: '',
 };
 
 class App extends Component {
@@ -22,8 +23,6 @@ class App extends Component {
   };
   async componentDidMount() {
     await this.getByImage();
-
-    console.log('componentDidMount');
   }
 
   async componentDidUpdate(prevProps, prevState) {
@@ -32,7 +31,6 @@ class App extends Component {
       prevState.page !== this.state.page
     ) {
       await this.getByImage();
-      console.log('componentDidUpdate');
     }
   }
   async getByImage(per_page = 12) {
@@ -57,8 +55,6 @@ class App extends Component {
   }
 
   onSubmit = event => {
-    console.log(event);
-
     return this.setState({
       title: event,
       arrayImages: [],
@@ -74,20 +70,15 @@ class App extends Component {
     });
   };
 
-  openModal = largeImage => {
-    this.setState({ showModal: true, image: largeImage });
+  openModal = (largeImage, alt) => {
+    this.setState({ showModal: true, image: largeImage, alt: alt });
   };
   closeModal = () => {
-    this.setState({ showModal: false, image: '' });
+    this.setState({ showModal: false, image: '', alt: '' });
   };
 
   render() {
-    console.log(this.state);
-
-    console.log('render');
-    // this.getByImage();
-    const { arrayImages, isLoading, error, showModal, image } = this.state;
-
+    const { arrayImages, isLoading, error, showModal, image, alt } = this.state;
     return (
       <div
         style={{
@@ -101,14 +92,22 @@ class App extends Component {
       >
         <Searchbar onSubmit={this.onSubmit} />
         {error && <p>Something went wrong: {error.message}</p>}
-        {isLoading && <Loader isLoading={isLoading} />}
+        {isLoading && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Loader isLoading={isLoading} />
+          </div>
+        )}
         {arrayImages.length > 0 && (
           <ImageGallery arrayImages={arrayImages} openModal={this.openModal} />
         )}
         {arrayImages.length > 0 && (
-          <Button handlePageUpdate={this.handlePageUpdate} />
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Button handlePageUpdate={this.handlePageUpdate} />
+          </div>
         )}
-        {showModal && <Modal closeModal={this.closeModal} image={image} />}
+        {showModal && (
+          <Modal closeModal={this.closeModal} image={image} alt={alt} />
+        )}
       </div>
     );
   }

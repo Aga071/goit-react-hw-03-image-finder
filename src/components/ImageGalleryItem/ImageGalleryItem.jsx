@@ -3,7 +3,8 @@ import css from './ImageGalleryItem.module.css';
 export default function ImageGalleryItem({ image, openModal }) {
   function handleClick() {
     const largeImage = image.largeImageURL;
-     openModal(largeImage);
+    const alt = image.tags;
+    openModal(largeImage, alt);
   }
   return (
     <li className={css.ImageGalleryItem}>
@@ -19,4 +20,5 @@ export default function ImageGalleryItem({ image, openModal }) {
 }
 ImageGalleryItem.propTypes = {
   image: PropTypes.object,
+  openModal: PropTypes.func.isRequired,
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import css from './Button.module.css';
 export default function Button({ handlePageUpdate }) {
   function handlerClick() {
@@ -9,3 +10,6 @@ export default function Button({ handlePageUpdate }) {
     </button>
   );
 }
+Button.propTypes = {
+  handlePageUpdate: PropTypes.func.isRequired,
+};
