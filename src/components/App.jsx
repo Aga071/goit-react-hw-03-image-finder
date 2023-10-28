@@ -4,6 +4,7 @@ import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
+import Modal from './Modal/Modal';
 
 const STATE = {
   arrayImages: [],
@@ -11,6 +12,8 @@ const STATE = {
   page: 1,
   isLoading: false,
   error: '',
+  showModal: false,
+  imageModal: '',
 };
 
 class App extends Component {
@@ -23,25 +26,18 @@ class App extends Component {
     console.log('componentDidMount');
   }
 
-  async componentDidUpdate() {
-    await this.getByImage();
-    console.log('componentDidUpdate');
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const oldState = this.state;
+  async componentDidUpdate(prevProps, prevState) {
     if (
-      nextState.title === oldState.title &&
-      nextState.page === oldState.page
+      prevState.title !== this.state.title ||
+      prevState.page !== this.state.page
     ) {
-      return false;
+      await this.getByImage();
+      console.log('componentDidUpdate');
     }
-    return true;
   }
-  // 39293413-f7845b49e753cbeb6dc88411e
-  // 40228040-e1deee2d1dbd5acbce038e379
   async getByImage(per_page = 12) {
     try {
+      this.setState({ isLoading: true });
       const moviesByImage = await axios.get('https://pixabay.com/api/', {
         params: {
           key: '39293413-f7845b49e753cbeb6dc88411e',
@@ -49,14 +45,9 @@ class App extends Component {
           page: `${this.state.page}`,
           per_page: `${per_page}`,
         },
-
-        // headers: {
-        //   accept: 'application/json',
-        // },
       });
       this.setState(prev => ({
-        // arrayImages: [...prev.arrayImages, ...moviesByImage.data.hits],
-        arrayImages: moviesByImage.data.hits,
+        arrayImages: [...prev.arrayImages, ...moviesByImage.data.hits],
       }));
     } catch (error) {
       this.setState({ error });
@@ -70,7 +61,8 @@ class App extends Component {
 
     return this.setState({
       title: event,
-      // arrayImages: [],
+      arrayImages: [],
+      page: 1,
     });
   };
 
@@ -82,12 +74,19 @@ class App extends Component {
     });
   };
 
+  openModal = largeImage => {
+    this.setState({ showModal: true, image: largeImage });
+  };
+  closeModal = () => {
+    this.setState({ showModal: false, image: '' });
+  };
+
   render() {
     console.log(this.state);
 
     console.log('render');
     // this.getByImage();
-    const { arrayImages, isLoading, error } = this.state;
+    const { arrayImages, isLoading, error, showModal, image } = this.state;
 
     return (
       <div
@@ -103,9 +102,13 @@ class App extends Component {
         <Searchbar onSubmit={this.onSubmit} />
         {error && <p>Something went wrong: {error.message}</p>}
         {isLoading && <Loader isLoading={isLoading} />}
-        {arrayImages.length > 0 && <ImageGallery arrayImages={arrayImages} />}
-
-        <Button handlePageUpdate={this.handlePageUpdate} />
+        {arrayImages.length > 0 && (
+          <ImageGallery arrayImages={arrayImages} openModal={this.openModal} />
+        )}
+        {arrayImages.length > 0 && (
+          <Button handlePageUpdate={this.handlePageUpdate} />
+        )}
+        {showModal && <Modal closeModal={this.closeModal} image={image} />}
       </div>
     );
   }
