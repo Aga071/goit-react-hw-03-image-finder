@@ -1,45 +1,94 @@
 import axios from 'axios';
 import React, { Component } from 'react';
-
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+import Button from './Button/Button';
+import Loader from './Loader/Loader';
 
 const STATE = {
-  contacts: [
-    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-  ],
-  filter: '',
+  arrayImages: [],
+  title: '',
+  page: 1,
+  isLoading: false,
+  error: '',
 };
 
 class App extends Component {
   state = {
     ...STATE,
   };
+  async componentDidMount() {
+    await this.getByImage();
 
-  async getByImage(title = 'dog', page = 1, per_page = 12) {
+    console.log('componentDidMount');
+  }
+
+  async componentDidUpdate() {
+    await this.getByImage();
+    console.log('componentDidUpdate');
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    const oldState = this.state;
+    if (
+      nextState.title === oldState.title &&
+      nextState.page === oldState.page
+    ) {
+      return false;
+    }
+    return true;
+  }
+  // 39293413-f7845b49e753cbeb6dc88411e
+  // 40228040-e1deee2d1dbd5acbce038e379
+  async getByImage(per_page = 12) {
     try {
-      const moviesByImage = await axios.get('https://pixabay.com/api', {
+      const moviesByImage = await axios.get('https://pixabay.com/api/', {
         params: {
           key: '39293413-f7845b49e753cbeb6dc88411e',
-          q: `${title}`,
-          page: `${page}`,
+          q: `${this.state.title}`,
+          page: `${this.state.page}`,
           per_page: `${per_page}`,
         },
+
         // headers: {
         //   accept: 'application/json',
         // },
       });
-      const array = moviesByImage.data.results;
-      console.log(array);
+      this.setState(prev => ({
+        // arrayImages: [...prev.arrayImages, ...moviesByImage.data.hits],
+        arrayImages: moviesByImage.data.hits,
+      }));
     } catch (error) {
-      console.log(error);
+      this.setState({ error });
+    } finally {
+      this.setState({ isLoading: false });
     }
   }
-  
+
+  onSubmit = event => {
+    console.log(event);
+
+    return this.setState({
+      title: event,
+      // arrayImages: [],
+    });
+  };
+
+  handlePageUpdate = () => {
+    this.setState(state => {
+      return {
+        page: state.page + 1,
+      };
+    });
+  };
 
   render() {
-    this.getByImage();
+    console.log(this.state);
+
+    console.log('render');
+    // this.getByImage();
+    const { arrayImages, isLoading, error } = this.state;
+
     return (
       <div
         style={{
@@ -50,12 +99,16 @@ class App extends Component {
           fontSize: 40,
           color: '#010101',
         }}
-      ></div>
+      >
+        <Searchbar onSubmit={this.onSubmit} />
+        {error && <p>Something went wrong: {error.message}</p>}
+        {isLoading && <Loader isLoading={isLoading} />}
+        {arrayImages.length > 0 && <ImageGallery arrayImages={arrayImages} />}
+
+        <Button handlePageUpdate={this.handlePageUpdate} />
+      </div>
     );
   }
 }
 
 export default App;
-
-
-
